@@ -50,7 +50,7 @@ const Profile: React.FC = () => {
                 <div className="w-32 h-32 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
                   <User className="w-16 h-16 text-white" strokeWidth={2} />
                 </div>
-                <button className="absolute bottom-0 right-0 bg-white rounded-full p-2.5 shadow-lg border-2 border-indigo-500 hover:bg-indigo-50 transition-all duration-200 group-hover:scale-110">
+                <button className="relative sm:absolute sm:bottom-0 sm:right-0 bg-white rounded-full p-2.5 shadow-lg border-2 border-indigo-500 hover:bg-indigo-50 transition-all duration-200 group-hover:scale-110">
                   <Camera className="w-4 h-4 text-indigo-600" />
                 </button>
               </div>

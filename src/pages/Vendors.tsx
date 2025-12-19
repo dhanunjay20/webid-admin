@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { vendorApi } from '../services/api';
 import type { Vendor } from '../types';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
-import { Trash2, Eye, ToggleLeft, ToggleRight, Search } from 'lucide-react';
+import { Eye, Search } from 'lucide-react';
 
 export const Vendors: React.FC = () => {
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -43,25 +43,6 @@ export const Vendors: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this vendor?')) {
-      try {
-        await vendorApi.deleteVendor(id);
-        loadVendors();
-      } catch (error) {
-        console.error('Error deleting vendor:', error);
-      }
-    }
-  };
-
-  const handleToggleStatus = async (id: string, currentStatus?: boolean) => {
-    try {
-      await vendorApi.updateVendorStatus(id, !currentStatus);
-      loadVendors();
-    } catch (error) {
-      console.error('Error updating vendor status:', error);
-    }
-  };
 
   const handleViewDetails = (vendor: Vendor) => {
     setSelectedVendor(vendor);
@@ -92,42 +73,17 @@ export const Vendors: React.FC = () => {
       key: 'actions',
       header: 'Actions',
       render: (vendor: Vendor) => (
-        <div className="flex space-x-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleViewDetails(vendor);
-            }}
-            className="text-blue-600 hover:text-blue-800 p-1"
-            title="View Details"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleToggleStatus(vendor.id, vendor.isOnline);
-            }}
-            className="text-purple-600 hover:text-purple-800 p-1"
-            title="Toggle Status"
-          >
-            {vendor.isOnline ? (
-              <ToggleRight className="w-4 h-4" />
-            ) : (
-              <ToggleLeft className="w-4 h-4" />
-            )}
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete(vendor.id);
-            }}
-            className="text-red-600 hover:text-red-800 p-1"
-            title="Delete"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleViewDetails(vendor);
+          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-2"
+          title="View Details"
+        >
+          <Eye className="w-4 h-4" />
+          <span className="hidden sm:inline">View</span>
+        </button>
       ),
     },
   ];
@@ -264,3 +220,4 @@ export const Vendors: React.FC = () => {
 };
 
 export default Vendors;
+

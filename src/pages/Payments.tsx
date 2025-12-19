@@ -92,18 +92,17 @@ const Payments: React.FC = () => {
       key: 'actions',
       header: 'Actions',
       render: (payment: Payment) => (
-        <div className="flex space-x-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleViewDetails(payment);
-            }}
-            className="text-blue-600 hover:text-blue-800 p-1"
-            title="View Details"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleViewDetails(payment);
+          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-2"
+          title="View Details"
+        >
+          <Eye className="w-4 h-4" />
+          <span className="hidden sm:inline">View</span>
+        </button>
       ),
     },
   ];

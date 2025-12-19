@@ -3,7 +3,7 @@ import { menuItemApi } from '../services/api';
 import type { MenuItem } from '../types';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
-import { Trash2, Eye, Search } from 'lucide-react';
+import { Eye, Search } from 'lucide-react';
 
 export const MenuItems: React.FC = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -49,16 +49,7 @@ export const MenuItems: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this menu item?')) {
-      try {
-        await menuItemApi.deleteMenuItem(id);
-        loadMenuItems();
-      } catch (error) {
-        console.error('Error deleting menu item:', error);
-      }
-    }
-  };
+
 
   const handleViewDetails = (item: MenuItem) => {
     setSelectedMenuItem(item);
@@ -107,28 +98,17 @@ export const MenuItems: React.FC = () => {
       key: 'actions',
       header: 'Actions',
       render: (item: MenuItem) => (
-        <div className="flex space-x-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleViewDetails(item);
-            }}
-            className="text-blue-600 hover:text-blue-800 p-1"
-            title="View Details"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete(item.id);
-            }}
-            className="text-red-600 hover:text-red-800 p-1"
-            title="Delete"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleViewDetails(item);
+          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-2"
+          title="View Details"
+        >
+          <Eye className="w-4 h-4" />
+          <span className="hidden sm:inline">View</span>
+        </button>
       ),
     },
   ];

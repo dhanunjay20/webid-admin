@@ -4,7 +4,7 @@ import type { Bid } from '../types';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import Dropdown from '../components/Dropdown';
-import { Trash2, Eye, Search, Filter } from 'lucide-react';
+import { Eye, Search, Filter } from 'lucide-react';
 
 const STATUS_OPTIONS = ['ALL', 'PENDING', 'ACCEPTED', 'REJECTED', 'WITHDRAWN'] as const;
 
@@ -92,24 +92,16 @@ const Bids: React.FC = () => {
       },
       {
         key: 'actions',
-        header: '',
+        header: 'Actions',
         render: (bid: Bid) => (
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={() => setSelectedBid(bid)}
-              className="p-2 rounded-lg hover:bg-blue-50 text-blue-600"
-              title="View"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => handleDelete(bid.id)}
-              className="p-2 rounded-lg hover:bg-red-50 text-red-600"
-              title="Delete"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={() => setSelectedBid(bid)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-2"
+            title="View Details"
+          >
+            <Eye className="w-4 h-4" />
+            <span className="hidden sm:inline">View</span>
+          </button>
         ),
       },
     ],

@@ -3,7 +3,7 @@ import { orderApi } from '../services/api';
 import type { Order } from '../types';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
-import { Trash2, Eye, Search } from 'lucide-react';
+import { Eye, Search } from 'lucide-react';
 
 const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -118,28 +118,17 @@ const Orders: React.FC = () => {
       key: 'actions',
       header: 'Actions',
       render: (order: Order) => (
-        <div className="flex space-x-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleViewDetails(order);
-            }}
-            className="text-blue-600 hover:text-blue-800 p-1"
-            title="View Details"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete(order.id);
-            }}
-            className="text-red-600 hover:text-red-800 p-1"
-            title="Delete"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleViewDetails(order);
+          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-2"
+          title="View Details"
+        >
+          <Eye className="w-4 h-4" />
+          <span className="hidden sm:inline">View</span>
+        </button>
       ),
     },
   ];
@@ -202,102 +191,66 @@ const Orders: React.FC = () => {
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
         title="Order Details"
-        size="xl"
+        size="lg"
       >
         {selectedOrder && (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-600">Event Name</label>
-                <p className="text-gray-900 font-semibold">{selectedOrder.eventName}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Event Name</label>
+                <p className="text-lg text-gray-900 font-medium">{selectedOrder.eventName}</p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Status</label>
-                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedOrder.status)}`}>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Status</label>
+                <span className={`inline-block px-4 py-2 rounded-lg text-sm font-semibold ${getStatusColor(selectedOrder.status)}`}>
                   {selectedOrder.status}
                 </span>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Customer</label>
-                <p className="text-gray-900">{selectedOrder.customerName}</p>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Customer</label>
+                <p className="text-lg text-gray-900">{selectedOrder.customerName}</p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Vendor</label>
-                <p className="text-gray-900">{selectedOrder.vendorName}</p>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Vendor</label>
+                <p className="text-lg text-gray-900">{selectedOrder.vendorName}</p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Event Date</label>
-                <p className="text-gray-900">{new Date(selectedOrder.eventDate).toLocaleDateString()}</p>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Event Date</label>
+                <p className="text-lg text-gray-900">{new Date(selectedOrder.eventDate).toLocaleDateString()}</p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Guest Count</label>
-                <p className="text-gray-900">{selectedOrder.guestCount}</p>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Guest Count</label>
+                <p className="text-lg text-gray-900">{selectedOrder.guestCount} Guests</p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Event Location</label>
-                <p className="text-gray-900">{selectedOrder.eventLocation}</p>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Event Location</label>
+                <p className="text-lg text-gray-900">{selectedOrder.eventLocation}</p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Total Price</label>
-                <p className="text-gray-900 font-semibold text-lg">${selectedOrder.totalPrice.toFixed(2)}</p>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Total Price</label>
+                <p className="text-2xl text-blue-600 font-bold">${selectedOrder.totalPrice.toFixed(2)}</p>
               </div>
             </div>
 
             {selectedOrder.menuItems && selectedOrder.menuItems.length > 0 && (
-              <div>
-                <label className="text-sm font-medium text-gray-600 mb-3 block">Menu Items</label>
-                <div className="space-y-2">
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Menu Items</h3>
+                <div className="space-y-3">
                   {selectedOrder.menuItems.map((item, idx) => (
-                    <div key={idx} className="bg-gray-50 p-4 rounded-lg flex justify-between items-center">
-                      <div>
-                        <p className="font-medium text-gray-900">{item.name}</p>
-                        <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                    <div key={idx} className="bg-gradient-to-r from-gray-50 to-gray-100 p-5 rounded-xl border border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900 text-lg">{item.name}</p>
+                        <p className="text-sm text-gray-600 mt-1">Quantity: <span className="font-semibold">{item.quantity}</span></p>
                         {item.specialInstructions && (
-                          <p className="text-xs text-gray-500 mt-1">{item.specialInstructions}</p>
+                          <p className="text-xs text-gray-500 mt-2 italic bg-white px-3 py-1 rounded-lg inline-block">{item.specialInstructions}</p>
                         )}
                       </div>
-                      <p className="font-semibold text-gray-900">${(item.pricePerUnit * item.quantity).toFixed(2)}</p>
+                      <p className="text-xl font-bold text-blue-600">${(item.pricePerUnit * item.quantity).toFixed(2)}</p>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-
-            <div>
-              <label className="text-sm font-medium text-gray-600 mb-2 block">Update Status</label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleUpdateStatus(selectedOrder.id, 'PENDING')}
-                  className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
-                >
-                  Pending
-                </button>
-                <button
-                  onClick={() => handleUpdateStatus(selectedOrder.id, 'CONFIRMED')}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-                >
-                  Confirmed
-                </button>
-                <button
-                  onClick={() => handleUpdateStatus(selectedOrder.id, 'IN_PROGRESS')}
-                  className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition"
-                >
-                  In Progress
-                </button>
-                <button
-                  onClick={() => handleUpdateStatus(selectedOrder.id, 'COMPLETED')}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
-                >
-                  Completed
-                </button>
-                <button
-                  onClick={() => handleUpdateStatus(selectedOrder.id, 'CANCELLED')}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                >
-                  Cancelled
-                </button>
-              </div>
-            </div>
           </div>
         )}
       </Modal>

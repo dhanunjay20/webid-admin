@@ -39,8 +39,8 @@ const Login: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 px-4 relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-blue-500 rounded-full opacity-20 blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-purple-500 rounded-full opacity-20 blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="hidden sm:block absolute -top-1/2 -left-1/2 w-full h-full bg-blue-500 rounded-full opacity-20 blur-3xl animate-pulse"></div>
+        <div className="hidden sm:block absolute -bottom-1/2 -right-1/2 w-full h-full bg-purple-500 rounded-full opacity-20 blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
       </div>
 
       <div className="max-w-md w-full relative z-10">

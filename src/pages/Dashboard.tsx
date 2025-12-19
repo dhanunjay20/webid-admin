@@ -61,7 +61,7 @@ const Dashboard: React.FC = () => {
     <div className="space-y-8 animate-fadeIn">
       {/* Header Section */}
       <div className="relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full blur-3xl opacity-30 -mr-48 -mt-48"></div>
+        <div className="hidden sm:block absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full blur-3xl opacity-30 -mr-48 -mt-48"></div>
         <div className="relative">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">Dashboard</h1>
           <p className="text-gray-600 mt-2 text-lg">Overview of your platform statistics and performance</p>
