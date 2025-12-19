@@ -49,26 +49,6 @@ const Orders: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this order?')) {
-      try {
-        await orderApi.deleteOrder(id);
-        loadOrders();
-      } catch (error) {
-        console.error('Error deleting order:', error);
-      }
-    }
-  };
-
-  const handleUpdateStatus = async (id: string, newStatus: string) => {
-    try {
-      await orderApi.updateOrderStatus(id, newStatus);
-      loadOrders();
-      setShowDetailModal(false);
-    } catch (error) {
-      console.error('Error updating order status:', error);
-    }
-  };
 
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
