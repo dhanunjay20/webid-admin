@@ -43,7 +43,6 @@ const Payments: React.FC = () => {
       setPayments(data);
       setFilteredPayments(data);
     } catch (error) {
-      console.error('Error loading payments:', error);
     } finally {
       setLoading(false);
     }

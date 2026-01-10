@@ -43,7 +43,6 @@ export const MenuItems: React.FC = () => {
       setMenuItems(data);
       setFilteredMenuItems(data);
     } catch (error) {
-      console.error('Error loading menu items:', error);
     } finally {
       setLoading(false);
     }

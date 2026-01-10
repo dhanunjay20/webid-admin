@@ -31,7 +31,6 @@ const Navbar: React.FC<NavbarProps> = ({ isSidebarOpen, toggleMobileMenu, isMobi
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      console.log('Searching for:', searchQuery);
       // TODO: Implement global search functionality
     }
   };

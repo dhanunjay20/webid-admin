@@ -14,11 +14,18 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Vendors from './pages/Vendors';
 import MenuItems from './pages/MenuItems';
+import useAutoLogout from './hooks/useAutoLogout';
+
+function AutoLogout() {
+  useAutoLogout();
+  return null;
+}
 
 const App: React.FC = () => {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <AutoLogout />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

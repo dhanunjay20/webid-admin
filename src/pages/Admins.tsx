@@ -36,7 +36,6 @@ const Admins: React.FC = () => {
       setAdmins(data);
       setFilteredAdmins(data);
     } catch (error) {
-      console.error('Error loading admins:', error);
     } finally {
       setLoading(false);
     }
@@ -56,7 +55,6 @@ const Admins: React.FC = () => {
       // await adminApi.updateAdminStatus(adminId, !currentStatus);
       
     } catch (error) {
-      console.error('Error updating admin status:', error);
       // Revert on error
       loadAdmins();
     } finally {

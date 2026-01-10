@@ -26,7 +26,6 @@ const Dashboard: React.FC = () => {
       const data = await dashboardApi.getStats();
       setStats(data);
     } catch (error) {
-      console.error('Error loading stats:', error);
     } finally {
       setLoading(false);
     }

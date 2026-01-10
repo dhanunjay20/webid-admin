@@ -50,7 +50,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setAdmin(response);
       }
     } catch (error) {
-      console.error('Login error:', error);
       throw error;
     }
   };
@@ -58,6 +57,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminUser');
+    sessionStorage.clear();
     setAdmin(null);
     window.location.href = '/login';
   };

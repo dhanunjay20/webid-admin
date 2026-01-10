@@ -31,7 +31,6 @@ const Bids: React.FC = () => {
         const data = await bidApi.getAllBids();
         setBids(data);
       } catch (err) {
-        console.error('Failed to load bids', err);
       } finally {
         setLoading(false);
       }
@@ -59,7 +58,6 @@ const Bids: React.FC = () => {
       await bidApi.deleteBid(id);
       setBids((prev) => prev.filter((b) => b.id !== id));
     } catch (err) {
-      console.error('Delete failed', err);
     }
   }, []);
 

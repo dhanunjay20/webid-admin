@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { vendorApi } from '../services/api';
 import type { Vendor } from '../types';
 import DataTable from '../components/DataTable';
@@ -37,7 +37,6 @@ export const Vendors: React.FC = () => {
       setVendors(data);
       setFilteredVendors(data);
     } catch (error) {
-      console.error('Error loading vendors:', error);
     } finally {
       setLoading(false);
     }

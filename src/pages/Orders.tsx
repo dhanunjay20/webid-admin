@@ -43,7 +43,6 @@ const Orders: React.FC = () => {
       setOrders(data);
       setFilteredOrders(data);
     } catch (error) {
-      console.error('Error loading orders:', error);
     } finally {
       setLoading(false);
     }

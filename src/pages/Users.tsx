@@ -37,7 +37,6 @@ const Users: React.FC = () => {
       setUsers(data);
       setFilteredUsers(data);
     } catch (error) {
-      console.error('Error loading users:', error);
     } finally {
       setLoading(false);
     }
