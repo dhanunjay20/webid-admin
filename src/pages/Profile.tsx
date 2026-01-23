@@ -63,7 +63,7 @@ const Profile: React.FC = () => {
                 <div className="mt-4 inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-2 rounded-xl border border-indigo-200">
                   <Shield className="w-4 h-4 text-indigo-600" />
                   <span className="text-sm font-semibold text-indigo-700">
-                    {admin?.role?.replace('_', ' ')}
+                    {admin?.userType?.replace('_', ' ')}
                   </span>
                 </div>
               </div>
@@ -207,7 +207,7 @@ const Profile: React.FC = () => {
                   <span>Role</span>
                 </label>
                 <p className="px-4 py-3 bg-gray-50 rounded-xl text-gray-900 font-medium border border-gray-200">
-                  {admin?.role?.replace('_', ' ')}
+                  {admin?.userType?.replace('_', ' ')}
                 </p>
               </div>
 

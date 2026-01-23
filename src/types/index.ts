@@ -1,30 +1,47 @@
 // Admin Types
 export interface Admin {
   id: string;
-  username: string;
   email: string;
   firstName: string;
   lastName: string;
   phone?: string;
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'MODERATOR';
+  userType: 'SUPER_ADMIN' | 'ADMIN' | 'MODERATOR';
+  country: 'USA' | 'India';
   createdAt: string;
   lastLoginAt: string;
   isActive: boolean;
-  token?: string;
+}
+
+export interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: Admin;
 }
 
 export interface AdminLoginDto {
-  username: string;
+  identifier: string; // email or phone
   password: string;
 }
 
 export interface AdminRegistrationDto {
-  username: string;
   email: string;
+  phone: string;
   password: string;
   firstName: string;
   lastName: string;
-  role: string;
+  userType: 'ADMIN' | 'MODERATOR' | 'SUPER_ADMIN';
+  country: 'USA' | 'India';
+}
+
+export interface ForgotPasswordDto {
+  email: string;
+}
+
+export interface ResetPasswordDto {
+  email: string;
+  otp: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 // Dashboard Stats
@@ -39,6 +56,20 @@ export interface DashboardStats {
   pendingOrders: number;
   completedOrders: number;
   activeVendors: number;
+}
+
+// Pagination
+export interface PaginationParams {
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
+}
+
+export interface ApiResponse<T> {
+  data: T;
+  message?: string;
+  status?: string;
 }
 
 // User Types
@@ -62,6 +93,15 @@ export interface User {
   longitude?: number;
   lastLocationUpdatedAt?: string;
   stripeCustomerId?: string;
+  status?: 'ACTIVE' | 'SUSPENDED' | 'PENDING';
+  userType?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface UpdateUserStatusDto {
+  status: string;
+  reason?: string;
 }
 
 // Vendor Types
@@ -89,6 +129,20 @@ export interface Vendor {
   latitude?: number;
   longitude?: number;
   lastLocationUpdatedAt?: string;
+  approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status?: 'ACTIVE' | 'PENDING' | 'REJECTED' | 'SUSPENDED';
+  rejectionReason?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ApproveVendorDto {
+  vendorId: string;
+}
+
+export interface RejectVendorDto {
+  vendorId: string;
+  reason: string;
 }
 
 // Order Types
@@ -163,4 +217,79 @@ export interface Payment {
   createdAt: string;
   customerName?: string;
   vendorName?: string;
+}
+
+// Platform Configuration Types
+export interface PlatformConfig {
+  id: string;
+  country: string;
+  currency: string;
+  platformFeePercentage: number;
+  taxRate: number;
+  minOrderAmount: number;
+  maxOrderAmount: number;
+  supportEmail: string;
+  supportPhone: string;
+  maintenanceMode: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdatePlatformConfigRequest {
+  currency?: string;
+  platformFeePercentage?: number;
+  taxRate?: number;
+  minOrderAmount?: number;
+  maxOrderAmount?: number;
+  supportEmail?: string;
+  supportPhone?: string;
+  maintenanceMode?: boolean;
+}
+
+// Audit Log Types
+export interface AuditLog {
+  id: string;
+  entityType: string;
+  entityId: string;
+  action: string;
+  performedBy: string;
+  performedByName?: string;
+  details: string;
+  ipAddress?: string;
+  timestamp: string;
+  createdAt: string;
+}
+
+export interface AuditLogFilters {
+  entityType?: string;
+  action?: string;
+  performedBy?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+// Announcement Types
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  type: 'INFO' | 'WARNING' | 'URGENT' | 'MAINTENANCE';
+  targetAudience: 'ALL' | 'USERS' | 'VENDORS' | 'ADMINS';
+  isActive: boolean;
+  startDate: string;
+  endDate?: string;
+  createdBy: string;
+  createdByName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateAnnouncementRequest {
+  title: string;
+  content: string;
+  type: 'INFO' | 'WARNING' | 'URGENT' | 'MAINTENANCE';
+  targetAudience: 'ALL' | 'USERS' | 'VENDORS' | 'ADMINS';
+  startDate: string;
+  endDate?: string;
+  isActive: boolean;
 }

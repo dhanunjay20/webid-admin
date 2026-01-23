@@ -3,67 +3,190 @@ import { vendorApi } from '../services/api';
 import type { Vendor } from '../types';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
-import { Eye, Search } from 'lucide-react';
+import { Store, Eye, CheckCircle, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
-export const Vendors: React.FC = () => {
+const Vendors: React.FC = () => {
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [filteredVendors, setFilteredVendors] = useState<Vendor[]>([]);
+  const [pendingVendors, setPendingVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [vendorToReject, setVendorToReject] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'pending'>('all');
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [totalVendors, setTotalVendors] = useState(0);
+  
+  // Filter state
+  const [statusFilter, setStatusFilter] = useState<string>('');
 
   useEffect(() => {
-    loadVendors();
-  }, []);
-
-  useEffect(() => {
-    if (searchQuery) {
-      const filtered = vendors.filter(
-        (vendor) =>
-          vendor.businessName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          vendor.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          vendor.contactName.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredVendors(filtered);
+    if (activeTab === 'all') {
+      loadVendors();
     } else {
-      setFilteredVendors(vendors);
+      loadPendingVendors();
     }
-  }, [searchQuery, vendors]);
+  }, [page, pageSize, statusFilter, activeTab]);
 
   const loadVendors = async () => {
     try {
-      const data = await vendorApi.getAllVendors();
-      setVendors(data);
-      setFilteredVendors(data);
+      setLoading(true);
+      const response = await vendorApi.getAllVendors({
+        page: page - 1,
+        size: pageSize,
+        ...(statusFilter && { status: statusFilter }),
+      });
+
+      // Response shape may be either Vendor[] or { data: Vendor[]; total: number }
+      const payload: any = response;
+      const items: Vendor[] = Array.isArray(payload) ? payload : payload?.data || payload || [];
+      const total: number = Array.isArray(payload) ? items.length : payload?.total || items.length;
+
+      setVendors(items);
+      setTotalVendors(total);
     } catch (error) {
+      console.error('Failed to load vendors:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  const loadPendingVendors = async () => {
+    try {
+      setLoading(true);
+      // Backend requires an access code for this endpoint. Read from env or localStorage.
+      const envAccessCode = import.meta.env.VITE_PENDING_ACCESS_CODE as string | undefined;
+      const storedAccessCode = localStorage.getItem('vendorAccessCode') || undefined;
+      const accessCode = envAccessCode || storedAccessCode;
+
+      const data: any = await vendorApi.getPendingVendors({ accessCode });
+      const items: Vendor[] = Array.isArray(data) ? data : data?.data || data || [];
+      setPendingVendors(items);
+    } catch (error) {
+      console.error('Failed to load pending vendors:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (vendorId: string) => {
+    if (!confirm('Are you sure you want to approve this vendor?')) return;
+
+    try {
+      await vendorApi.approveVendor(vendorId);
+      alert('Vendor approved successfully!');
+      if (activeTab === 'pending') {
+        loadPendingVendors();
+      } else {
+        loadVendors();
+      }
+    } catch (error) {
+      console.error('Failed to approve vendor:', error);
+      alert('Failed to approve vendor');
+    }
+  };
+
+  const handleRejectClick = (vendorId: string) => {
+    setVendorToReject(vendorId);
+    setShowRejectModal(true);
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!vendorToReject) return;
+    if (!rejectReason.trim()) {
+      alert('Please provide a reason for rejection');
+      return;
+    }
+
+    try {
+      await vendorApi.rejectVendor(vendorToReject, rejectReason);
+      alert('Vendor rejected successfully!');
+      setShowRejectModal(false);
+      setRejectReason('');
+      setVendorToReject(null);
+      if (activeTab === 'pending') {
+        loadPendingVendors();
+      } else {
+        loadVendors();
+      }
+    } catch (error) {
+      console.error('Failed to reject vendor:', error);
+      alert('Failed to reject vendor');
+    }
+  };
 
   const handleViewDetails = (vendor: Vendor) => {
     setSelectedVendor(vendor);
     setShowDetailModal(true);
   };
 
-  const columns = [
-    { key: 'businessName', header: 'Business Name' },
-    { key: 'contactName', header: 'Contact' },
-    { key: 'email', header: 'Email' },
-    { key: 'mobile', header: 'Phone' },
+  const getStatusBadge = (status: string) => {
+    const statusColors: Record<string, string> = {
+      ACTIVE: 'bg-green-100 text-green-800',
+      PENDING: 'bg-yellow-100 text-yellow-800',
+      REJECTED: 'bg-red-100 text-red-800',
+      SUSPENDED: 'bg-gray-100 text-gray-800',
+    };
+    return statusColors[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getApprovalBadge = (approvalStatus: string) => {
+    const approvalColors: Record<string, string> = {
+      APPROVED: 'bg-green-100 text-green-800',
+      PENDING: 'bg-yellow-100 text-yellow-800',
+      REJECTED: 'bg-red-100 text-red-800',
+    };
+    return approvalColors[approvalStatus] || 'bg-gray-100 text-gray-800';
+  };
+
+  const allVendorsColumns = [
     {
-      key: 'isOnline',
+      key: 'businessName',
+      header: 'Business Name',
+      render: (vendor: Vendor) => (
+        <div>
+          <p className="font-semibold text-gray-900">{vendor.businessName}</p>
+          <p className="text-sm text-gray-500">{vendor.contactName}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'email',
+      header: 'Contact',
+      render: (vendor: Vendor) => (
+        <div>
+          <p className="text-sm text-gray-900">{vendor.email}</p>
+          <p className="text-sm text-gray-500">{vendor.mobile}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'status',
       header: 'Status',
       render: (vendor: Vendor) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-semibold ${
-            vendor.isOnline
-              ? 'bg-green-100 text-green-800'
-              : 'bg-gray-100 text-gray-800'
-          }`}
-        >
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(vendor.status || 'PENDING')}`}>
+          {vendor.status || 'PENDING'}
+        </span>
+      ),
+    },
+    {
+      key: 'approvalStatus',
+      header: 'Approval',
+      render: (vendor: Vendor) => (
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getApprovalBadge(vendor.approvalStatus || 'PENDING')}`}>
+          {vendor.approvalStatus || 'PENDING'}
+        </span>
+      ),
+    },
+    {
+      key: 'isOnline',
+      header: 'Online',
+      render: (vendor: Vendor) => (
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${vendor.isOnline ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
           {vendor.isOnline ? 'Online' : 'Offline'}
         </span>
       ),
@@ -77,20 +200,90 @@ export const Vendors: React.FC = () => {
             e.stopPropagation();
             handleViewDetails(vendor);
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-2"
-          title="View Details"
+          className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
         >
           <Eye className="w-4 h-4" />
-          <span className="hidden sm:inline">View</span>
         </button>
       ),
     },
   ];
 
-  if (loading) {
+  const pendingVendorsColumns = [
+    {
+      key: 'businessName',
+      header: 'Business Name',
+      render: (vendor: Vendor) => (
+        <div>
+          <p className="font-semibold text-gray-900">{vendor.businessName}</p>
+          <p className="text-sm text-gray-500">{vendor.contactName}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'email',
+      header: 'Contact',
+      render: (vendor: Vendor) => (
+        <div>
+          <p className="text-sm text-gray-900">{vendor.email}</p>
+          <p className="text-sm text-gray-500">{vendor.mobile}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'approvalStatus',
+      header: 'Approval Status',
+      render: (vendor: Vendor) => (
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getApprovalBadge(vendor.approvalStatus || 'PENDING')}`}>
+          {vendor.approvalStatus || 'PENDING'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (vendor: Vendor) => (
+        <div className="flex gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewDetails(vendor);
+            }}
+            className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
+            title="View Details"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleApprove(vendor.id);
+            }}
+            className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200"
+            title="Approve"
+          >
+            <CheckCircle className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRejectClick(vendor.id);
+            }}
+            className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
+            title="Reject"
+          >
+            <XCircle className="w-4 h-4" />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  const totalPages = Math.ceil(totalVendors / pageSize);
+
+  if (loading && vendors.length === 0 && pendingVendors.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     );
   }
@@ -102,89 +295,186 @@ export const Vendors: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Vendors Management</h1>
-            <p className="text-purple-100 mt-1">Manage all registered vendors</p>
+            <p className="text-purple-100 mt-1">Manage vendor registrations and approvals</p>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-xl border border-white/30">
-            <p className="text-sm text-purple-100 font-medium">Total Vendors</p>
-            <p className="text-3xl font-bold">{vendors.length}</p>
-          </div>
+          <Store className="w-12 h-12 opacity-50" />
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search vendors by business name or contact..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-white transition-all duration-200"
-        />
-        </div>
+      {/* Tabs */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-1 flex gap-2">
+        <button
+          onClick={() => {
+            setActiveTab('all');
+            setPage(1);
+          }}
+          className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 ${
+            activeTab === 'all'
+              ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md'
+              : 'text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          All Vendors
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('pending');
+            setPage(1);
+          }}
+          className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 ${
+            activeTab === 'pending'
+              ? 'bg-gradient-to-r from-yellow-600 to-yellow-700 text-white shadow-md'
+              : 'text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          Pending Approval ({pendingVendors.length})
+        </button>
       </div>
 
-      <DataTable data={filteredVendors} columns={columns} emptyMessage="No vendors found" />
+      {/* Filters (for All Vendors tab) */}
+      {activeTab === 'all' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="flex gap-4 items-center">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Status Filter</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="">All Statuses</option>
+                <option value="ACTIVE">Active</option>
+                <option value="PENDING">Pending</option>
+                <option value="REJECTED">Rejected</option>
+                <option value="SUSPENDED">Suspended</option>
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Page Size</label>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="10">10 per page</option>
+                <option value="25">25 per page</option>
+                <option value="50">50 per page</option>
+                <option value="100">100 per page</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
 
+      {/* Data Table */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          </div>
+        ) : (
+          <DataTable
+            data={activeTab === 'all' ? vendors : pendingVendors}
+            columns={activeTab === 'all' ? allVendorsColumns : pendingVendorsColumns}
+            emptyMessage={activeTab === 'all' ? 'No vendors found' : 'No pending vendors'}
+          />
+        )}
+      </div>
+
+      {/* Pagination (for All Vendors tab) */}
+      {activeTab === 'all' && totalPages > 1 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              Showing {((page - 1) * pageSize) + 1} to {Math.min(page * pageSize, totalVendors)} of {totalVendors} vendors
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage(page - 1)}
+                disabled={page === 1}
+                className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span className="px-4 py-2 text-sm font-medium text-gray-700">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage(page + 1)}
+                disabled={page === totalPages}
+                className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Vendor Detail Modal */}
       <Modal
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
         title="Vendor Details"
-        size="lg"
       >
         {selectedVendor && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-600">Business Name</label>
-                <p className="text-gray-900 font-semibold">{selectedVendor.businessName}</p>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Business Name</label>
+                <p className="text-gray-900">{selectedVendor.businessName}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Contact Name</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Contact Name</label>
                 <p className="text-gray-900">{selectedVendor.contactName}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Email</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
                 <p className="text-gray-900">{selectedVendor.email}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Phone</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Phone</label>
                 <p className="text-gray-900">{selectedVendor.mobile}</p>
               </div>
-              {selectedVendor.website && (
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Website</label>
-                  <a
-                    href={selectedVendor.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
-                  >
-                    {selectedVendor.website}
-                  </a>
-                </div>
-              )}
-              {selectedVendor.yearsInBusiness && (
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Years in Business</label>
-                  <p className="text-gray-900">{selectedVendor.yearsInBusiness}</p>
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Status</label>
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(selectedVendor.status || 'PENDING')}`}>
+                  {selectedVendor.status || 'PENDING'}
+                </span>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Approval Status</label>
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getApprovalBadge(selectedVendor.approvalStatus || 'PENDING')}`}>
+                  {selectedVendor.approvalStatus || 'PENDING'}
+                </span>
+              </div>
             </div>
 
             {selectedVendor.aboutBusiness && (
               <div>
-                <label className="text-sm font-medium text-gray-600">About Business</label>
-                <p className="text-gray-900 text-sm">{selectedVendor.aboutBusiness}</p>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">About Business</label>
+                <p className="text-sm text-gray-900">{selectedVendor.aboutBusiness}</p>
+              </div>
+            )}
+
+            {selectedVendor.rejectionReason && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <label className="block text-sm font-semibold text-red-700 mb-1">Rejection Reason</label>
+                <p className="text-sm text-red-900">{selectedVendor.rejectionReason}</p>
               </div>
             )}
 
             {selectedVendor.addresses && selectedVendor.addresses.length > 0 && (
               <div>
-                <label className="text-sm font-medium text-gray-600 mb-2 block">Addresses</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Addresses</label>
                 {selectedVendor.addresses.map((addr, idx) => (
-                  <div key={idx} className="bg-gray-50 p-3 rounded-lg mb-2">
+                  <div key={idx} className="bg-gray-50 rounded-lg p-3 mb-2">
                     <p className="text-sm text-gray-900">
                       {addr.street}, {addr.city}, {addr.state} {addr.zipCode}, {addr.country}
                     </p>
@@ -195,9 +485,9 @@ export const Vendors: React.FC = () => {
 
             {selectedVendor.licenseDocuments && selectedVendor.licenseDocuments.length > 0 && (
               <div>
-                <label className="text-sm font-medium text-gray-600 mb-2 block">License Documents</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">License Documents</label>
                 {selectedVendor.licenseDocuments.map((doc, idx) => (
-                  <div key={idx} className="bg-blue-50 p-3 rounded-lg mb-2">
+                  <div key={idx} className="bg-blue-50 rounded-lg p-3 mb-2">
                     <p className="text-sm font-medium text-gray-900">{doc.documentType}</p>
                     <a
                       href={doc.documentUrl}
@@ -213,6 +503,51 @@ export const Vendors: React.FC = () => {
             )}
           </div>
         )}
+      </Modal>
+
+      {/* Reject Reason Modal */}
+      <Modal
+        isOpen={showRejectModal}
+        onClose={() => {
+          setShowRejectModal(false);
+          setRejectReason('');
+          setVendorToReject(null);
+        }}
+        title="Reject Vendor"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Rejection Reason <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500"
+              rows={4}
+              placeholder="Provide a reason for rejecting this vendor..."
+              required
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={handleRejectConfirm}
+              className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-xl hover:from-red-700 hover:to-red-800"
+            >
+              Confirm Reject
+            </button>
+            <button
+              onClick={() => {
+                setShowRejectModal(false);
+                setRejectReason('');
+                setVendorToReject(null);
+              }}
+              className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

@@ -6,13 +6,13 @@ import { UserPlus, Shield, Sparkles, CheckCircle } from 'lucide-react';
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: '',
     email: '',
+    phone: '',
     password: '',
     firstName: '',
     lastName: '',
-    role: 'ADMIN',
-    isActive: true,
+    userType: 'ADMIN' as 'ADMIN' | 'MODERATOR' | 'SUPER_ADMIN',
+    country: 'USA' as 'USA' | 'India',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -120,22 +120,6 @@ const Register: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="username" className="block text-sm font-semibold text-gray-700">
-                Username
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                value={formData.username}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200"
-                placeholder="johndoe"
-              />
-            </div>
-
-            <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
                 Email Address
               </label>
@@ -148,6 +132,22 @@ const Register: React.FC = () => {
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200"
                 placeholder="john@example.com"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="phone" className="block text-sm font-semibold text-gray-700">
+                Phone Number
+              </label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200"
+                placeholder="+1 (555) 123-4567"
               />
             </div>
 
@@ -169,19 +169,35 @@ const Register: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="role" className="block text-sm font-semibold text-gray-700">
+              <label htmlFor="userType" className="block text-sm font-semibold text-gray-700">
                 Admin Role
               </label>
               <select
-                id="role"
-                name="role"
-                value={formData.role}
+                id="userType"
+                name="userType"
+                value={formData.userType}
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200"
               >
                 <option value="ADMIN">Admin - Standard Access</option>
                 <option value="MODERATOR">Moderator - Limited Access</option>
                 <option value="SUPER_ADMIN">Super Admin - Full Access</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="country" className="block text-sm font-semibold text-gray-700">
+                Country
+              </label>
+              <select
+                id="country"
+                name="country"
+                value={formData.country}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200"
+              >
+                <option value="USA">United States</option>
+                <option value="India">India</option>
               </select>
             </div>
 

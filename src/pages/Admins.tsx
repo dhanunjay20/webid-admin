@@ -78,7 +78,7 @@ const Admins: React.FC = () => {
       render: (admin: Admin) => (
         <div className="flex items-center space-x-2">
           <Shield className="w-4 h-4 text-gray-500" />
-          <span className="font-medium">{admin.username}</span>
+          <span className="font-medium">{admin.email}</span>
         </div>
       ),
     },
@@ -89,11 +89,11 @@ const Admins: React.FC = () => {
     },
     { key: 'email', header: 'Email' },
     {
-      key: 'role',
+      key: 'userType',
       header: 'Role',
       render: (admin: Admin) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getRoleBadgeColor(admin.role)}`}>
-          {admin.role}
+        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getRoleBadgeColor(admin.userType)}`}>
+          {admin.userType}
         </span>
       ),
     },

@@ -5,6 +5,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import AccountRecovery from './pages/AccountRecovery';
 import Users from './pages/Users';
 import Orders from './pages/Orders';
 import Bids from './pages/Bids';
@@ -14,6 +17,9 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Vendors from './pages/Vendors';
 import MenuItems from './pages/MenuItems';
+import PlatformConfig from './pages/PlatformConfig';
+import AuditLogs from './pages/AuditLogs';
+import Announcements from './pages/Announcements';
 import useAutoLogout from './hooks/useAutoLogout';
 
 function AutoLogout() {
@@ -29,6 +35,9 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/account-recovery" element={<AccountRecovery />} />
           
           <Route
             path="/"
@@ -47,6 +56,9 @@ const App: React.FC = () => {
             <Route path="menu-items" element={<MenuItems />} />
             <Route path="payments" element={<Payments />} />
             <Route path="admins" element={<Admins />} />
+            <Route path="platform-config" element={<PlatformConfig />} />
+            <Route path="audit-logs" element={<AuditLogs />} />
+            <Route path="announcements" element={<Announcements />} />
             <Route path="profile" element={<Profile />} />
           </Route>
 

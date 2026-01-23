@@ -10,7 +10,10 @@ import {
   CreditCard,
   Shield,
   ChevronRight,
-  PanelLeftClose
+  PanelLeftClose,
+  Settings,
+  FileText,
+  Megaphone
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -28,6 +31,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     { path: '/menu-items', icon: UtensilsCrossed, label: 'Menu Items', color: 'from-red-500 to-red-600' },
     { path: '/payments', icon: CreditCard, label: 'Payments', color: 'from-emerald-500 to-emerald-600' },
     { path: '/admins', icon: Shield, label: 'Admins', color: 'from-indigo-500 to-indigo-600' },
+    { path: '/platform-config', icon: Settings, label: 'Platform Config', color: 'from-yellow-500 to-yellow-600' },
+    { path: '/audit-logs', icon: FileText, label: 'Audit Logs', color: 'from-cyan-500 to-cyan-600' },
+    { path: '/announcements', icon: Megaphone, label: 'Announcements', color: 'from-rose-500 to-rose-600' },
   ];
 
   return (

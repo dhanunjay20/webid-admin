@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LogIn, Shield, Sparkles } from 'lucide-react';
+import { LogIn, Shield, Sparkles, AlertTriangle, Mail, Lock } from 'lucide-react';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [formData, setFormData] = useState({
-    username: '',
+    identifier: '',
     password: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showAccountLockedModal, setShowAccountLockedModal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,10 +20,27 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
+      console.log('Form submission started');
       await login(formData);
-      navigate('/dashboard');
+      console.log('Login successful, navigating to dashboard');
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 100);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      console.error('Login failed:', err);
+      const errorMessage = err?.response?.data?.message || err?.message || 'Login failed. Please check your credentials.';
+
+      // Check if account is locked/blocked
+      if (typeof errorMessage === 'string' && (
+          errorMessage.toLowerCase().includes('locked') || 
+          errorMessage.toLowerCase().includes('blocked') ||
+          errorMessage.toLowerCase().includes('max') ||
+          err?.response?.status === 423)) {
+        setShowAccountLockedModal(true);
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -82,18 +100,23 @@ const Login: React.FC = () => {
             )}
 
             <div className="space-y-2">
-              <label htmlFor="username" className="block text-sm font-semibold text-gray-700">
-                Username
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="identifier" className="block text-sm font-semibold text-gray-700">
+                  Email or Phone
+                </label>
+                <Link to="/account-recovery" className="text-xs text-blue-600 hover:text-blue-700 font-medium">
+                  Forgot Email or Phone?
+                </Link>
+              </div>
               <input
-                id="username"
-                name="username"
+                id="identifier"
+                name="identifier"
                 type="text"
                 required
-                value={formData.username}
+                value={formData.identifier}
                 onChange={handleChange}
                 className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all duration-200 placeholder:text-gray-400"
-                placeholder="Enter your username"
+                placeholder="Enter your email or phone"
               />
             </div>
 
@@ -102,7 +125,9 @@ const Login: React.FC = () => {
                 <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
                   Password
                 </label>
-                <a href="#" className="text-xs text-blue-600 hover:text-blue-700 font-medium">Forgot?</a>
+                <Link to="/forgot-password" className="text-xs text-blue-600 hover:text-blue-700 font-medium">
+                  Forgot Password?
+                </Link>
               </div>
               <input
                 id="password"
@@ -147,6 +172,63 @@ const Login: React.FC = () => {
             </p>
           </div>
         </div>
+
+        {/* Account Locked Modal */}
+        {showAccountLockedModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-fade-in">
+              <button
+                onClick={() => setShowAccountLockedModal(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                  <AlertTriangle className="w-8 h-8 text-red-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Account Locked</h3>
+                <p className="text-gray-600 text-sm">
+                  Your account has been temporarily locked due to multiple failed login attempts.
+                </p>
+                <p className="text-gray-600 text-sm mt-2">
+                  We've sent a password reset link to your registered email address.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setShowAccountLockedModal(false);
+                    navigate('/forgot-password');
+                  }}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center space-x-2"
+                >
+                  <Lock className="w-5 h-5" />
+                  <span>Reset Password</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowAccountLockedModal(false);
+                    navigate('/account-recovery');
+                  }}
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2"
+                >
+                  <Mail className="w-5 h-5" />
+                  <span>Recover Account Details</span>
+                </button>
+              </div>
+
+              <p className="text-center text-xs text-gray-500 mt-6">
+                Need help? Contact support at support@webid.com
+              </p>
+            </div>
+          </div>
+        )}
 
         <p className="text-center text-sm text-white/80 mt-8">
           © 2025 WebID Admin. All rights reserved.

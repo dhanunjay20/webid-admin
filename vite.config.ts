@@ -6,6 +6,16 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: "::",
-    port: 5175,
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
+      },
+      // NOTE: do NOT proxy '/vendors' because that conflicts with SPA route '/vendors' on refresh.
+      // API calls should use the '/api' prefix (e.g. '/api/v1/vendors') so the proxy above handles them.
+    },
   }
 })

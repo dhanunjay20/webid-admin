@@ -23,9 +23,12 @@ const Dashboard: React.FC = () => {
 
   const loadStats = async () => {
     try {
-      const data = await dashboardApi.getStats();
+      const response = await dashboardApi.getStats();
+      // Handle both direct response and ApiResponse wrapper
+      const data = response.data || response;
       setStats(data);
     } catch (error) {
+      console.error('Failed to load dashboard stats:', error);
     } finally {
       setLoading(false);
     }

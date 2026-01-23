@@ -32,9 +32,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     // Check for existing session
     const storedAdmin = localStorage.getItem('adminUser');
-    const token = localStorage.getItem('adminToken');
+    const accessToken = localStorage.getItem('accessToken');
     
-    if (storedAdmin && token) {
+    if (storedAdmin && accessToken) {
       setAdmin(JSON.parse(storedAdmin));
     }
     setLoading(false);
@@ -42,20 +42,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (credentials: AdminLoginDto) => {
     try {
+      console.log('Attempting login with:', { identifier: credentials.identifier });
       const response = await adminApi.login(credentials);
+      console.log('Login response received:', response);
       
-      if (response.token) {
-        localStorage.setItem('adminToken', response.token);
-        localStorage.setItem('adminUser', JSON.stringify(response));
-        setAdmin(response);
+      // Handle both direct response and nested data
+      const authData = response.data || response;
+      const accessToken = authData.accessToken || authData.access_token;
+      const refreshToken = authData.refreshToken || authData.refresh_token;
+      const user = authData.user || authData;
+      
+      console.log('Parsed auth data:', { hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken, hasUser: !!user });
+      
+      if (!accessToken) {
+        console.error('No access token in response:', response);
+        throw new Error('No access token received from server');
       }
-    } catch (error) {
+
+      // Store tokens and user data
+      localStorage.setItem('accessToken', accessToken);
+      if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+      }
+      localStorage.setItem('adminUser', JSON.stringify(user));
+      
+      console.log('Tokens stored, setting admin state');
+      setAdmin(user);
+      console.log('Login successful, admin state updated');
+    } catch (error: any) {
+      console.error('Login error details:', {
+        message: error?.message,
+        response: error?.response?.data,
+        status: error?.response?.status
+      });
       throw error;
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('adminToken');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('adminUser');
     sessionStorage.clear();
     setAdmin(null);
