@@ -19,7 +19,6 @@ const Admins: React.FC = () => {
     if (searchQuery) {
       const filtered = admins.filter(
         (admin) =>
-          admin.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
           admin.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
           admin.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           admin.lastName.toLowerCase().includes(searchQuery.toLowerCase())

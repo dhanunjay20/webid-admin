@@ -3,26 +3,25 @@ import { vendorApi } from '../services/api';
 import type { Vendor } from '../types';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
-import { Store, Eye, CheckCircle, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Store, Eye, CheckCircle, XCircle} from 'lucide-react';
 
 const Vendors: React.FC = () => {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [pendingVendors, setPendingVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [vendorToReject, setVendorToReject] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'pending'>('all');
   
-  // Pagination state
-  const [page, setPage] = useState(1);
+  // Pagination state removed — API returns full lists now
   const [pageSize, setPageSize] = useState(25);
-  const [totalVendors, setTotalVendors] = useState(0);
-  
-  // Filter state
-  const [statusFilter, setStatusFilter] = useState<string>('');
+
+  // Filter state (no UI available to change it)
+  const statusFilter = '';
 
   useEffect(() => {
     if (activeTab === 'all') {
@@ -30,24 +29,18 @@ const Vendors: React.FC = () => {
     } else {
       loadPendingVendors();
     }
-  }, [page, pageSize, statusFilter, activeTab]);
+  }, [statusFilter, activeTab]);
 
   const loadVendors = async () => {
     try {
       setLoading(true);
-      const response = await vendorApi.getAllVendors({
-        page: page - 1,
-        size: pageSize,
-        ...(statusFilter && { status: statusFilter }),
-      });
+      // call simplified API (no pagination)
+      const items: Vendor[] = await vendorApi.getAllVendors();
 
-      // Response shape may be either Vendor[] or { data: Vendor[]; total: number }
-      const payload: any = response;
-      const items: Vendor[] = Array.isArray(payload) ? payload : payload?.data || payload || [];
-      const total: number = Array.isArray(payload) ? items.length : payload?.total || items.length;
+      // Optionally filter by status client-side if statusFilter is set
+      const filtered = statusFilter ? items.filter(v => v.status === statusFilter) : items;
 
-      setVendors(items);
-      setTotalVendors(total);
+      setVendors(filtered);
     } catch (error) {
       console.error('Failed to load vendors:', error);
     } finally {
@@ -63,8 +56,7 @@ const Vendors: React.FC = () => {
       const storedAccessCode = localStorage.getItem('vendorAccessCode') || undefined;
       const accessCode = envAccessCode || storedAccessCode;
 
-      const data: any = await vendorApi.getPendingVendors({ accessCode });
-      const items: Vendor[] = Array.isArray(data) ? data : data?.data || data || [];
+      const items: Vendor[] = await vendorApi.getPendingVendors({ accessCode });
       setPendingVendors(items);
     } catch (error) {
       console.error('Failed to load pending vendors:', error);
@@ -119,9 +111,21 @@ const Vendors: React.FC = () => {
     }
   };
 
-  const handleViewDetails = (vendor: Vendor) => {
-    setSelectedVendor(vendor);
-    setShowDetailModal(true);
+  const handleViewDetails = async (vendor: Vendor) => {
+    try {
+      setDetailLoading(true);
+      // prefer backend vendorId when available
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const vendorIdFromRow = (vendor as any).vendorId || vendor.vendorOrganizationId || vendor.id;
+      const full = await vendorApi.getVendorDetails(vendorIdFromRow);
+      setSelectedVendor(full);
+      setShowDetailModal(true);
+    } catch (error) {
+      console.error('Failed to load vendor details:', error);
+      alert('Failed to load vendor details');
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -278,7 +282,7 @@ const Vendors: React.FC = () => {
     },
   ];
 
-  const totalPages = Math.ceil(totalVendors / pageSize);
+  // pagination removed; totalVendors available for informational UI
 
   if (loading && vendors.length === 0 && pendingVendors.length === 0) {
     return (
@@ -306,7 +310,6 @@ const Vendors: React.FC = () => {
         <button
           onClick={() => {
             setActiveTab('all');
-            setPage(1);
           }}
           className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 ${
             activeTab === 'all'
@@ -319,7 +322,6 @@ const Vendors: React.FC = () => {
         <button
           onClick={() => {
             setActiveTab('pending');
-            setPage(1);
           }}
           className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 ${
             activeTab === 'pending'
@@ -334,42 +336,24 @@ const Vendors: React.FC = () => {
       {/* Filters (for All Vendors tab) */}
       {activeTab === 'all' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="flex gap-4 items-center">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Status Filter</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value);
-                  setPage(1);
-                }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="">All Statuses</option>
-                <option value="ACTIVE">Active</option>
-                <option value="PENDING">Pending</option>
-                <option value="REJECTED">Rejected</option>
-                <option value="SUSPENDED">Suspended</option>
-              </select>
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Page Size</label>
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setPage(1);
-                }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="10">10 per page</option>
-                <option value="25">25 per page</option>
-                <option value="50">50 per page</option>
-                <option value="100">100 per page</option>
-              </select>
+            <div className="flex gap-4 items-center">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Page Size</label>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="10">10 per page</option>
+                  <option value="25">25 per page</option>
+                  <option value="50">50 per page</option>
+                  <option value="100">100 per page</option>
+                </select>
+              </div>
             </div>
           </div>
-        </div>
       )}
 
       {/* Data Table */}
@@ -387,43 +371,15 @@ const Vendors: React.FC = () => {
         )}
       </div>
 
-      {/* Pagination (for All Vendors tab) */}
-      {activeTab === 'all' && totalPages > 1 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600">
-              Showing {((page - 1) * pageSize) + 1} to {Math.min(page * pageSize, totalVendors)} of {totalVendors} vendors
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage(page - 1)}
-                disabled={page === 1}
-                className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <span className="px-4 py-2 text-sm font-medium text-gray-700">
-                Page {page} of {totalPages}
-              </span>
-              <button
-                onClick={() => setPage(page + 1)}
-                disabled={page === totalPages}
-                className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Pagination removed; API returns full lists */}
 
       {/* Vendor Detail Modal */}
-      <Modal
-        isOpen={showDetailModal}
-        onClose={() => setShowDetailModal(false)}
-        title="Vendor Details"
-      >
-        {selectedVendor && (
+      <Modal isOpen={showDetailModal} onClose={() => setShowDetailModal(false)} title="Vendor Details">
+        {detailLoading ? (
+          <div className="flex items-center justify-center h-48">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          </div>
+        ) : selectedVendor ? (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -460,6 +416,20 @@ const Vendors: React.FC = () => {
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">About Business</label>
                 <p className="text-sm text-gray-900">{selectedVendor.aboutBusiness}</p>
+              </div>
+            )}
+
+            {selectedVendor.cuisinesOffered && selectedVendor.cuisinesOffered.length > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Cuisines</label>
+                <p className="text-sm text-gray-900">{selectedVendor.cuisinesOffered.join(', ')}</p>
+              </div>
+            )}
+
+            {selectedVendor.specialties && selectedVendor.specialties.length > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Specialties</label>
+                <p className="text-sm text-gray-900">{selectedVendor.specialties.join(', ')}</p>
               </div>
             )}
 
@@ -501,7 +471,57 @@ const Vendors: React.FC = () => {
                 ))}
               </div>
             )}
+
+            {selectedVendor.documents && selectedVendor.documents.length > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Uploaded Documents</label>
+                {selectedVendor.documents.map((doc, idx) => (
+                  <div key={idx} className="bg-blue-50 rounded-lg p-3 mb-2">
+                    <p className="text-sm font-medium text-gray-900">{doc.documentName || doc.documentType}</p>
+                    <p className="text-xs text-gray-600">Number: {doc.documentNumber}</p>
+                    <a
+                      href={doc.documentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      View Document
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selectedVendor.capacity && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Capacity</label>
+                <p className="text-sm text-gray-900">Min: {selectedVendor.capacity.minGuests || '-'} | Max: {selectedVendor.capacity.maxGuests || '-'}</p>
+              </div>
+            )}
+
+            {selectedVendor.pricing && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Pricing</label>
+                <p className="text-sm text-gray-900">{selectedVendor.pricing.currency || ''} {selectedVendor.pricing.startingPricePerPlate || '-'} starting</p>
+              </div>
+            )}
+
+            {selectedVendor.ratings && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Ratings</label>
+                <p className="text-sm text-gray-900">{selectedVendor.ratings.averageRating || 0} ({selectedVendor.ratings.totalReviews || 0} reviews)</p>
+              </div>
+            )}
+
+            {selectedVendor.ownerInfo && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Owner</label>
+                <p className="text-sm text-gray-900">{selectedVendor.ownerInfo.firstName} {selectedVendor.ownerInfo.lastName} — {selectedVendor.ownerInfo.phone}</p>
+              </div>
+            )}
           </div>
+        ) : (
+          <div className="text-center text-sm text-gray-500">No vendor selected</div>
         )}
       </Modal>
 

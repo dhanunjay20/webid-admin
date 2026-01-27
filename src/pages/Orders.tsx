@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { orderApi } from '../services/api';
 import type { Order } from '../types';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
@@ -39,7 +38,41 @@ const Orders: React.FC = () => {
 
   const loadOrders = async () => {
     try {
-      const data = await orderApi.getAllOrders();
+      // Mock data
+      const data: Order[] = [
+        {
+          id: '1',
+          customerId: 'customer-1',
+          vendorOrganizationId: 'vendor-1',
+          eventName: 'Corporate Lunch',
+          eventDate: '2026-01-30',
+          eventLocation: 'Office Building A',
+          guestCount: 50,
+          menuItems: [],
+          status: 'CONFIRMED',
+          totalPrice: 2500,
+          customerName: 'John Doe',
+          vendorName: 'Tasty Kitchen',
+          createdAt: '2026-01-25T10:00:00Z',
+          updatedAt: '2026-01-25T10:00:00Z'
+        },
+        {
+          id: '2',
+          customerId: 'customer-2',
+          vendorOrganizationId: 'vendor-2',
+          eventName: 'Birthday Party',
+          eventDate: '2026-02-01',
+          eventLocation: 'Party Hall',
+          guestCount: 30,
+          menuItems: [],
+          status: 'PENDING',
+          totalPrice: 1800,
+          customerName: 'Jane Smith',
+          vendorName: 'Pizza Palace',
+          createdAt: '2026-01-26T14:30:00Z',
+          updatedAt: '2026-01-26T14:30:00Z'
+        }
+      ];
       setOrders(data);
       setFilteredOrders(data);
     } catch (error) {

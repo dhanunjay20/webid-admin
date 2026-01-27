@@ -17,32 +17,26 @@ const Users: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [totalUsers, setTotalUsers] = useState(0);
-  const [statusFilter, setStatusFilter] = useState('');
-  const [userTypeFilter, setUserTypeFilter] = useState('');
   const [statusReason, setStatusReason] = useState('');
   const [newStatus, setNewStatus] = useState('');
 
   useEffect(() => {
     loadUsers();
-  }, [currentPage, pageSize, statusFilter, userTypeFilter]);
+  }, []);
 
-  const loadUsers = async () => {
+  const loadUsers = async () => { // Load users with role=USER
     try {
       setLoading(true);
-      const response = await userApi.getAllUsers({
-        page: currentPage,
-        size: pageSize,
-        status: statusFilter || undefined,
-        userType: userTypeFilter || undefined,
-      });
-      
+      // Force role=USER for now
+      const response = await userApi.getAllUsers({ role: 'USER' });
+
       // Handle both direct array and paginated response
       if (Array.isArray(response)) {
         setUsers(response);
         setTotalUsers(response.length);
       } else {
         setUsers(response.data || response);
-        setTotalUsers(response.total || 0);
+        setTotalUsers(Array.isArray(response.data) ? response.data.length : response.total || 0);
       }
     } catch (error) {
       console.error('Failed to load users:', error);
@@ -191,7 +185,7 @@ const Users: React.FC = () => {
 
       {/* Filters & Search */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Search */}
           <div className="md:col-span-1">
             <div className="relative">
@@ -204,40 +198,6 @@ const Users: React.FC = () => {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
               />
             </div>
-          </div>
-
-          {/* Status Filter */}
-          <div>
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(0);
-              }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            >
-              <option value="">All Statuses</option>
-              <option value="ACTIVE">Active</option>
-              <option value="SUSPENDED">Suspended</option>
-              <option value="PENDING">Pending</option>
-            </select>
-          </div>
-
-          {/* User Type Filter */}
-          <div>
-            <select
-              value={userTypeFilter}
-              onChange={(e) => {
-                setUserTypeFilter(e.target.value);
-                setCurrentPage(0);
-              }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            >
-              <option value="">All Types</option>
-              <option value="USER">User</option>
-              <option value="VENDOR">Vendor</option>
-              <option value="ADMIN">Admin</option>
-            </select>
           </div>
 
           {/* Page Size */}

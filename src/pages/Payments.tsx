@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { paymentApi } from '../services/api';
 import type { Payment } from '../types';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
@@ -39,7 +38,41 @@ const Payments: React.FC = () => {
 
   const loadPayments = async () => {
     try {
-      const data = await paymentApi.getAllPayments();
+      // Mock data
+      const data: Payment[] = [
+        {
+          id: '1',
+          orderId: 'order-1',
+          customerId: 'customer-1',
+          vendorOrganizationId: 'vendor-1',
+          stripePaymentIntentId: 'pi_1234567890',
+          stripeCustomerId: 'cus_1234567890',
+          stripeChargeId: 'ch_1234567890',
+          amountInCents: 250000,
+          currency: 'USD',
+          status: 'COMPLETED',
+          paidAt: '2026-01-25T10:00:00Z',
+          customerName: 'John Doe',
+          vendorName: 'Tasty Kitchen',
+          createdAt: '2026-01-25T10:00:00Z'
+        },
+        {
+          id: '2',
+          orderId: 'order-2',
+          customerId: 'customer-2',
+          vendorOrganizationId: 'vendor-2',
+          stripePaymentIntentId: 'pi_0987654321',
+          stripeCustomerId: 'cus_0987654321',
+          stripeChargeId: 'ch_0987654321',
+          amountInCents: 180000,
+          currency: 'USD',
+          status: 'PENDING',
+          paidAt: '2026-01-26T14:30:00Z',
+          customerName: 'Jane Smith',
+          vendorName: 'Pizza Palace',
+          createdAt: '2026-01-26T14:30:00Z'
+        }
+      ];
       setPayments(data);
       setFilteredPayments(data);
     } catch (error) {

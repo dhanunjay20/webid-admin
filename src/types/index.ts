@@ -113,6 +113,7 @@ export interface LicenseDocument {
 }
 
 export interface Vendor {
+  vendorId?: string;
   id: string;
   vendorOrganizationId: string;
   businessName: string;
@@ -134,6 +135,50 @@ export interface Vendor {
   rejectionReason?: string;
   createdAt?: string;
   updatedAt?: string;
+  // Extended details (optional)
+  cuisinesOffered?: string[];
+  specialties?: string[];
+  capacity?: {
+    minGuests?: number;
+    maxGuests?: number;
+    concurrentEvents?: number;
+  };
+  pricing?: {
+    currency?: string;
+    startingPricePerPlate?: number;
+    averagePricePerPlate?: number;
+  };
+  ratings?: {
+    averageRating?: number;
+    totalReviews?: number;
+  };
+  stats?: {
+    totalOrders?: number;
+    completedOrders?: number;
+  };
+  ownerInfo?: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    email?: string;
+    idProofType?: string;
+    idProofNumber?: string;
+  };
+  serviceAreas?: Array<{ city?: string; state?: string; radiusKm?: number }>;
+  documents?: Array<{
+    documentId?: string;
+    documentType?: string;
+    documentName?: string;
+    documentUrl?: string;
+    documentNumber?: string;
+    issueDate?: string;
+    expiryDate?: string | null;
+    verificationStatus?: string;
+    uploadedAt?: string;
+  }>;
+  country?: string;
+  verified?: boolean;
+  featured?: boolean;
 }
 
 export interface ApproveVendorDto {

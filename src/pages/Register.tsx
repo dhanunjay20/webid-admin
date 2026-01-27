@@ -5,14 +5,24 @@ import { UserPlus, Shield, Sparkles, CheckCircle } from 'lucide-react';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  type FormData = {
+    email: string;
+    phone: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    userType: 'ADMIN' | 'MODERATOR' | 'SUPER_ADMIN';
+    country: 'USA' | 'India';
+  };
+
+  const [formData, setFormData] = useState<FormData>({
     email: '',
     phone: '',
     password: '',
     firstName: '',
     lastName: '',
-    userType: 'ADMIN' as 'ADMIN' | 'MODERATOR' | 'SUPER_ADMIN',
-    country: 'USA' as 'USA' | 'India',
+    userType: 'ADMIN',
+    country: 'USA',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,7 +33,9 @@ const Register: React.FC = () => {
     setLoading(true);
 
     try {
-      await adminApi.register(formData);
+      // Ensure registrations from this admin UI are created with ADMIN role.
+      const payload: FormData = { ...formData, userType: 'ADMIN' };
+      await adminApi.register(payload);
       navigate('/login');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
@@ -33,10 +45,16 @@ const Register: React.FC = () => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]:
+        name === 'userType'
+          ? (value as FormData['userType'])
+          : name === 'country'
+          ? (value as FormData['country'])
+          : value,
+    } as FormData));
   };
 
   return (

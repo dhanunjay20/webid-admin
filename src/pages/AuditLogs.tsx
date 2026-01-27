@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { auditLogApi } from '../services/api';
 import type { AuditLog, AuditLogFilters } from '../types';
 import DataTable from '../components/DataTable';
 import { FileText, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -19,19 +18,35 @@ const AuditLogs: React.FC = () => {
   const loadLogs = async () => {
     try {
       setLoading(true);
-      const response = await auditLogApi.getAuditLogs({
-        ...filters,
-        page: currentPage,
-        size: pageSize,
-      });
-
-      if (Array.isArray(response)) {
-        setLogs(response);
-        setTotal(response.length);
-      } else {
-        setLogs(response.data || response);
-        setTotal(response.total || 0);
-      }
+      // Mock data
+      const mockLogs: AuditLog[] = [
+        {
+          id: '1',
+          action: 'VENDOR_APPROVED',
+          performedBy: 'admin-1',
+          performedByName: 'Admin User',
+          entityType: 'VENDOR',
+          entityId: 'vendor-123',
+          timestamp: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          details: 'Approved vendor registration',
+          ipAddress: '192.168.1.1'
+        },
+        {
+          id: '2',
+          action: 'USER_STATUS_UPDATED',
+          performedBy: 'admin-1',
+          performedByName: 'Admin User',
+          entityType: 'USER',
+          entityId: 'user-456',
+          timestamp: new Date(Date.now() - 3600000).toISOString(),
+          createdAt: new Date(Date.now() - 3600000).toISOString(),
+          details: 'Updated user status to ACTIVE',
+          ipAddress: '192.168.1.1'
+        }
+      ];
+      setLogs(mockLogs);
+      setTotal(mockLogs.length);
     } catch (error) {
       console.error('Failed to load audit logs:', error);
     } finally {

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { dashboardApi } from '../services/api';
 import type { DashboardStats } from '../types';
 import StatCard from '../components/StatCard';
 import {
@@ -23,9 +22,19 @@ const Dashboard: React.FC = () => {
 
   const loadStats = async () => {
     try {
-      const response = await dashboardApi.getStats();
-      // Handle both direct response and ApiResponse wrapper
-      const data = response.data || response;
+      // Mock data
+      const data: DashboardStats = {
+        totalUsers: 1250,
+        totalVendors: 345,
+        totalOrders: 2840,
+        totalBids: 567,
+        totalMenuItems: 1890,
+        totalPayments: 2715,
+        totalRevenue: 125430,
+        pendingOrders: 45,
+        completedOrders: 2680,
+        activeVendors: 320
+      };
       setStats(data);
     } catch (error) {
       console.error('Failed to load dashboard stats:', error);

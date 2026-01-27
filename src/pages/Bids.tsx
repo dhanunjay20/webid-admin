@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { bidApi } from '../services/api';
 import type { Bid } from '../types';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
@@ -28,7 +27,33 @@ const Bids: React.FC = () => {
   useEffect(() => {
     const loadBids = async () => {
       try {
-        const data = await bidApi.getAllBids();
+        // Mock data
+        const data: Bid[] = [
+          {
+            id: '1',
+            orderId: 'order-1',
+            vendorOrganizationId: 'vendor-1',
+            vendorBusinessName: 'Tasty Kitchen',
+            eventName: 'Corporate Lunch',
+            proposedMessage: 'We can provide authentic Indian cuisine',
+            proposedTotalPrice: 2500,
+            status: 'PENDING',
+            submittedAt: '2026-01-25T10:00:00Z',
+            updatedAt: '2026-01-25T10:00:00Z'
+          },
+          {
+            id: '2',
+            orderId: 'order-2',
+            vendorOrganizationId: 'vendor-2',
+            vendorBusinessName: 'Pizza Palace',
+            eventName: 'Birthday Party',
+            proposedMessage: 'Fresh pizzas for your party!',
+            proposedTotalPrice: 1800,
+            status: 'ACCEPTED',
+            submittedAt: '2026-01-26T14:30:00Z',
+            updatedAt: '2026-01-26T14:30:00Z'
+          }
+        ];
         setBids(data);
       } catch (err) {
       } finally {
@@ -55,7 +80,7 @@ const Bids: React.FC = () => {
     if (!confirm('Delete this bid permanently?')) return;
 
     try {
-      await bidApi.deleteBid(id);
+      // Mock delete - just remove from state
       setBids((prev) => prev.filter((b) => b.id !== id));
     } catch (err) {
     }

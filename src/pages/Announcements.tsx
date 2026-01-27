@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { announcementApi } from '../services/api';
 import type { Announcement, CreateAnnouncementRequest } from '../types';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
@@ -24,7 +23,35 @@ const Announcements: React.FC = () => {
 
   const loadAnnouncements = async () => {
     try {
-      const data = await announcementApi.getAll();
+      // Mock data
+      const data: Announcement[] = [
+        {
+          id: '1',
+          title: 'Platform Maintenance',
+          content: 'Scheduled maintenance on Sunday 2AM-4AM',
+          type: 'INFO',
+          targetAudience: 'ALL',
+          startDate: '2026-01-30',
+          isActive: true,
+          createdBy: 'admin-1',
+          createdByName: 'Admin User',
+          createdAt: '2026-01-25T10:00:00Z',
+          updatedAt: '2026-01-25T10:00:00Z'
+        },
+        {
+          id: '2',
+          title: 'New Features Released',
+          content: 'Check out our new menu management features!',
+          type: 'INFO',
+          targetAudience: 'VENDORS',
+          startDate: '2026-01-27',
+          isActive: true,
+          createdBy: 'admin-1',
+          createdByName: 'Admin User',
+          createdAt: '2026-01-27T08:00:00Z',
+          updatedAt: '2026-01-27T08:00:00Z'
+        }
+      ];
       setAnnouncements(data);
     } catch (error) {
       console.error('Failed to load announcements:', error);
@@ -35,10 +62,18 @@ const Announcements: React.FC = () => {
 
   const handleCreate = async () => {
     try {
-      await announcementApi.create(formData);
+      // Mock create - add to local state
+      const newAnnouncement: Announcement = {
+        id: Date.now().toString(),
+        ...formData,
+        createdBy: 'admin-1',
+        createdByName: 'Admin User',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      setAnnouncements([newAnnouncement, ...announcements]);
       setShowCreateModal(false);
       resetForm();
-      loadAnnouncements();
     } catch (error) {
       console.error('Failed to create announcement:', error);
       alert('Failed to create announcement');
@@ -49,8 +84,8 @@ const Announcements: React.FC = () => {
     if (!confirm('Are you sure you want to delete this announcement?')) return;
 
     try {
-      await announcementApi.delete(id);
-      loadAnnouncements();
+      // Mock delete - remove from local state
+      setAnnouncements(announcements.filter(a => a.id !== id));
     } catch (error) {
       console.error('Failed to delete announcement:', error);
       alert('Failed to delete announcement');

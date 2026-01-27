@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { platformConfigApi } from '../services/api';
 import type { UpdatePlatformConfigRequest } from '../types';
 import { Settings, Save, Globe } from 'lucide-react';
 
@@ -15,17 +14,18 @@ const PlatformConfiguration: React.FC = () => {
 
   const loadConfig = async () => {
     try {
-      const data = await platformConfigApi.getConfig(country);
-      setFormData({
-        currency: data.currency,
-        platformFeePercentage: data.platformFeePercentage,
-        taxRate: data.taxRate,
-        minOrderAmount: data.minOrderAmount,
-        maxOrderAmount: data.maxOrderAmount,
-        supportEmail: data.supportEmail,
-        supportPhone: data.supportPhone,
-        maintenanceMode: data.maintenanceMode,
-      });
+      // Mock data
+      const data = {
+        currency: country === 'India' ? 'INR' : 'USD',
+        platformFeePercentage: 10,
+        taxRate: country === 'India' ? 18 : 8,
+        minOrderAmount: country === 'India' ? 500 : 10,
+        maxOrderAmount: country === 'India' ? 100000 : 2000,
+        supportEmail: 'support@webid.com',
+        supportPhone: country === 'India' ? '+91-1234567890' : '+1-234-567-8900',
+        maintenanceMode: false,
+      };
+      setFormData(data);
     } catch (error) {
       console.error('Failed to load config:', error);
     } finally {
@@ -36,7 +36,8 @@ const PlatformConfiguration: React.FC = () => {
   const handleSave = async () => {
     try {
       setSaving(true);
-      await platformConfigApi.updateConfig(formData);
+      // Mock save - just simulate delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       alert('Configuration updated successfully!');
     } catch (error) {
       console.error('Failed to update config:', error);
